@@ -1,0 +1,45 @@
+return {
+  "mfussenegger/nvim-dap",
+  dependencies = {},
+  config = function()
+    local dap = require("dap")
+
+    -- Adapter Definitions --
+
+    -- dgb adapter --
+    dap.adapters.dgb = {
+      type = "executable",
+      command = "gdb",
+      arg = { "--interpreter=dap", "--eval-command", "set print pretty on"}
+    }
+
+    -- codelldb adapter --
+    dap.adapters.codelldb = {
+      type = "executable",
+      command = "/home/taku1029/src/codelldb/extension/adapter/codelldb",
+    }
+    -- Configurations --
+    -- Each config must return a table --
+    -- codelldb --
+    dap.configurations.cpp = {
+      {
+        name = "Launch file",
+        type = "codelldb",
+        request = "launch",
+        program = function()
+          return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. '/', 'file')
+        end,
+        cwd = '${workspaceFolder}',
+        stopOnEntry = false,
+      }
+    }
+    dap.configurations.c = dap.configurations.cpp
+
+  end,
+  keys = {
+    {"b", "<cmd>DapToggleBreakpoint<cr>", mode = {"n"}, desc = "Toggle Breakpoint"},
+    {"<F5>", "<cmd>DapContinue<cr>", mode = {"n"}, desc = "Start Debugging"},
+    {"<F9>", "<cmd>DapStepOver<cr>", mode = {"n"}, desc = "Step Over"},
+    {"<F10>", "<cmd>DapStepInto<cr>", mode = {"n"}, desc = "Step Into"},
+  },
+}
