@@ -30,6 +30,7 @@ return {
           local build_options = {
             "Build and Debug",
             "Build and no linkage",
+            "Link .o file and Debug",
           }
           -- print out all options
           for index, value in ipairs(build_options) do
@@ -39,14 +40,34 @@ return {
           local option = tonumber(input)
 
           local current_file = vim.fn.expand('%:p')
+          local current_dir = vim.fn.expand('%:p:h')
+          local file_extension = vim.fn.expand('%:e')
           local file_name = vim.fn.expand('%:t:r') -- without file extension
-          local output_file = vim.fn.expand('%:p:h') .. '/build/' .. file_name
+          local output_file = vim.fn.expand('%:p:h') .. '/build/' .. file_extension .. '_' .. file_name
 
           local compile_cmd = "";
           if option == 1 then
             compile_cmd = string.format('g++ -g -o %s %s', output_file, current_file)
           elseif option == 2 then
-            compile_cmd = string.format('g++ -c -g %s -o %s', current_file, output_file .. '.o')
+            output_file = output_file .. '.o'
+            compile_cmd = string.format('g++ -c -g %s -o %s', current_file, output_file)
+          elseif option == 3 then
+            local files_str = ''
+            local input = ''
+            local file_path = ''
+            local flg = 0
+            while flg ~= 1 do
+              input = vim.fn.input(".o file: build/")
+              if input == "" then
+                flg = 1
+                break
+              end
+              file_path = current_dir .. '/build/' .. input
+              print('\n' .. file_path)
+              files_str = files_str .. ' ' .. file_path
+              print(files_str)
+            end
+            compile_cmd = string.format('g++ -g' .. files_str .. ' -o ' .. output_file)
           end
           print("\nCompiling: " .. compile_cmd)
           local result = vim.fn.system(compile_cmd)
@@ -82,8 +103,9 @@ return {
           local option = tonumber(input)
 
           local current_file = vim.fn.expand('%:p')
+          local file_extension = vim.fn.expand('%:e')
           local file_name = vim.fn.expand('%:t:r') -- without file extension
-          local output_file = vim.fn.expand('%:p:h') .. '/build/' .. file_name
+          local output_file = vim.fn.expand('%:p:h') .. '/build/' .. file_extension .. '_' .. file_name
 
           local compile_cmd = "";
           if option == 1 then
@@ -91,7 +113,12 @@ return {
           elseif option == 2 then
             compile_cmd = string.format('g++ -g -o %s %s', output_file, current_file)
           elseif option == 3 then
-           compile_cmd = string.format('g++ -c -g %s -o %s', current_file, output_file .. '.o')
+            output_file = output_file .. '.o'
+            compile_cmd = string.format('g++ -c -g %s -o %s', current_file, output_file)
+            -- Return nil to just generate .o file
+            print("\nCompiling: " .. compile_cmd)
+            local result = vim.fn.system(compile_cmd)
+            return nil
           end
           print("\nCompiling: " .. compile_cmd)
           local result = vim.fn.system(compile_cmd)
